@@ -131,120 +131,120 @@ def rank_model(sg_size,tg_nq,gr_nq):
 
 
 # 각각의 스펙트로그램의 특징을 추출하기 위한 model
-def image_conv():
-
-    inputs=Input(shape=(48,200,1),name="img")
-
-    # Convolution Layer는 이미지의 특징들을 추출한다.(feature map으로 생성)
-    c1=layers.Conv2D(16,(3,3),input_shape=(48,200,1))(inputs)
-    drop1=layers.Dropout(0.2)(c1)
-    # BatchNormalization은 batch 단위로 입력 데이터로 평균과 분산을 하여 정규화한다.
-    bn1 = layers.BatchNormalization()(drop1)
-    ac1=layers.Activation("relu")(bn1)
-    # MaxPooling2D은 특성범위 내의 픽셀 중 가장 큰 값을 추출하여 특징을 추출한다.
-    m1=layers.MaxPooling2D((2,2))(ac1)
-
-    #         Conv2D(filter 수, (filter size))
-    c2=layers.Conv2D(32,(3,3),activation="relu")(m1)
-    drop2 = layers.Dropout(0.2)(c2)
-    bn2 = layers.BatchNormalization()(drop2)
-    ac2 = layers.Activation("relu")(bn2)
-    m2=layers.MaxPooling2D((2,2))(ac2)
-
-    # Flatten은 다차원의 입력을 단순히 일차원으로 만들기 위해 사용한다
-    f=layers.Flatten()(m2)
-
-    #         Dense(출력 뉴련의 수)
-    d1=layers.Dense(128,activation="relu")(f)
-    d1=layers.Dropout(0.2)(d1)
-    d2=layers.Dense(64,activation="relu")(d1)
-    d2=layers.Dropout(0.2)(d2)
-    d3=layers.Dense(32,activation="relu")(d2)
-    dr=layers.Dropout(0.2)(d3)
-
-    return Model(inputs,dr)
-
-
-# image_conv함수에서 출력된 랜덤한 임베딩 값을 dot연산해 나온 결과와 label과 비교를 위한 model
-def image_sim():
-    img1=Input(shape=(48,200,1),name="img1")
-    img2=Input(shape=(48,200,1),name="img2")
-
-    conv_layer=image_conv()
-    conv1 = conv_layer(img1)
-    conv2 = conv_layer(img2)
-
-    # 두 개의 텐서에서 샘플 간의 내적을 계산하는 계층
-    dot=layers.Dot(axes=1,name="dot_similarity")([conv1,conv2])
-
-    d3=layers.Dense(1,activation="sigmoid")(dot)
-
-    sim_model=Model(inputs=[img1,img2],outputs=d3)
-    sim_model.summary()
-    sim_model.compile(loss=losses.BinaryCrossentropy(),optimizer=optimizers.Adam(lr=0.001))
-    return sim_model
-
-from tensorflow.keras.utils import Sequence
-import numpy as np
-
-
-# npy라는 형태의 데이터를 활용하기 위해 커스텀하게 함수 생성
-class DataGenerator(Sequence):
-
-    def __init__(self, dataframe,batch_size=32, shuffle=True):
-        # 이미지를 찾을 수 있는 경로가 dataframe에 들어있다(id로 찾을 수 있다)
-        self.df=dataframe
-        self.batch_size=batch_size
-        self.shuffle=shuffle
-        self.on_epoch_end()
-
-    # getitem의 batch에 활용되는 인덱스 목록을 리턴해주기 위한 함수
-    def __len__(self):
-        return int(np.ceil(len(self.df)/self.batch_size))
-
-    # 한번의 batch안에서 필요한 아이템을 가져오는 함수
-    def __getitem__(self,index):
-        indexes=self.indexes[index*self.batch_size : (index+1)*self.batch_size]
-        batch_df=self.df.iloc[indexes]
-
-        input_id=batch_df["input"].to_numpy()
-        target_id=batch_df["target"].to_numpy()
-        y_train=batch_df["label"].to_numpy()
-
-        X_input=[]
-        X_target=[]
-
-        for id in input_id:
-            sid=str(id)
-            if id>=1000:
-                img1=np.load("./arena_mel/"+sid[:-3]+"/"+sid+".npy")
-            else:
-                img1=np.load("./arena_mel/0/"+sid+".npy")
-
-            img1=img1[:,:200]
-            img1=np.expand_dims(img1,axis=-1)
-            X_input.append(img1)
-
-        for id in target_id:
-            sid = str(id)
-            if id >= 1000:
-                img1 = np.load("./arena_mel/" + sid[:-3] + "/" + sid + ".npy")
-            else:
-                img1 = np.load("./arena_mel/0/" + sid + ".npy")
-
-            img1 = img1[:, :200]
-            # axis로 지정된 차원을 추가
-            img1 = np.expand_dims(img1, axis=-1)
-            X_target.append(img1)
-
-        return  {"img1":np.array(X_input),"img2":np.array(X_target)},y_train
-
-    # epochs마다 어떤 처리 할지 정해준다
-    def on_epoch_end(self):
-        # 가지고 있는 데이터 세트의 인덱스를 가져온다
-        self.indexes=np.arange(len(self.df))
-        if self.shuffle:
-            np.random.shuffle(self.indexes)
+# def image_conv():
+#
+#     inputs=Input(shape=(48,200,1),name="img")
+#
+#     # Convolution Layer는 이미지의 특징들을 추출한다.(feature map으로 생성)
+#     c1=layers.Conv2D(16,(3,3),input_shape=(48,200,1))(inputs)
+#     drop1=layers.Dropout(0.2)(c1)
+#     # BatchNormalization은 batch 단위로 입력 데이터로 평균과 분산을 하여 정규화한다.
+#     bn1 = layers.BatchNormalization()(drop1)
+#     ac1=layers.Activation("relu")(bn1)
+#     # MaxPooling2D은 특성범위 내의 픽셀 중 가장 큰 값을 추출하여 특징을 추출한다.
+#     m1=layers.MaxPooling2D((2,2))(ac1)
+#
+#     #         Conv2D(filter 수, (filter size))
+#     c2=layers.Conv2D(32,(3,3),activation="relu")(m1)
+#     drop2 = layers.Dropout(0.2)(c2)
+#     bn2 = layers.BatchNormalization()(drop2)
+#     ac2 = layers.Activation("relu")(bn2)
+#     m2=layers.MaxPooling2D((2,2))(ac2)
+#
+#     # Flatten은 다차원의 입력을 단순히 일차원으로 만들기 위해 사용한다
+#     f=layers.Flatten()(m2)
+#
+#     #         Dense(출력 뉴련의 수)
+#     d1=layers.Dense(128,activation="relu")(f)
+#     d1=layers.Dropout(0.2)(d1)
+#     d2=layers.Dense(64,activation="relu")(d1)
+#     d2=layers.Dropout(0.2)(d2)
+#     d3=layers.Dense(32,activation="relu")(d2)
+#     dr=layers.Dropout(0.2)(d3)
+#
+#     return Model(inputs,dr)
+#
+#
+# # image_conv함수에서 출력된 랜덤한 임베딩 값을 dot연산해 나온 결과와 label과 비교를 위한 model
+# def image_sim():
+#     img1=Input(shape=(48,200,1),name="img1")
+#     img2=Input(shape=(48,200,1),name="img2")
+#
+#     conv_layer=image_conv()
+#     conv1 = conv_layer(img1)
+#     conv2 = conv_layer(img2)
+#
+#     # 두 개의 텐서에서 샘플 간의 내적을 계산하는 계층
+#     dot=layers.Dot(axes=1,name="dot_similarity")([conv1,conv2])
+#
+#     d3=layers.Dense(1,activation="sigmoid")(dot)
+#
+#     sim_model=Model(inputs=[img1,img2],outputs=d3)
+#     sim_model.summary()
+#     sim_model.compile(loss=losses.BinaryCrossentropy(),optimizer=optimizers.Adam(lr=0.001))
+#     return sim_model
+#
+# from tensorflow.keras.utils import Sequence
+# import numpy as np
+#
+#
+# # npy라는 형태의 데이터를 활용하기 위해 커스텀하게 함수 생성
+# class DataGenerator(Sequence):
+#
+#     def __init__(self, dataframe,batch_size=32, shuffle=True):
+#         # 이미지를 찾을 수 있는 경로가 dataframe에 들어있다(id로 찾을 수 있다)
+#         self.df=dataframe
+#         self.batch_size=batch_size
+#         self.shuffle=shuffle
+#         self.on_epoch_end()
+#
+#     # getitem의 batch에 활용되는 인덱스 목록을 리턴해주기 위한 함수
+#     def __len__(self):
+#         return int(np.ceil(len(self.df)/self.batch_size))
+#
+#     # 한번의 batch안에서 필요한 아이템을 가져오는 함수
+#     def __getitem__(self,index):
+#         indexes=self.indexes[index*self.batch_size : (index+1)*self.batch_size]
+#         batch_df=self.df.iloc[indexes]
+#
+#         input_id=batch_df["input"].to_numpy()
+#         target_id=batch_df["target"].to_numpy()
+#         y_train=batch_df["label"].to_numpy()
+#
+#         X_input=[]
+#         X_target=[]
+#
+#         for id in input_id:
+#             sid=str(id)
+#             if id>=1000:
+#                 img1=np.load("./arena_mel/"+sid[:-3]+"/"+sid+".npy")
+#             else:
+#                 img1=np.load("./arena_mel/0/"+sid+".npy")
+#
+#             img1=img1[:,:200]
+#             img1=np.expand_dims(img1,axis=-1)
+#             X_input.append(img1)
+#
+#         for id in target_id:
+#             sid = str(id)
+#             if id >= 1000:
+#                 img1 = np.load("./arena_mel/" + sid[:-3] + "/" + sid + ".npy")
+#             else:
+#                 img1 = np.load("./arena_mel/0/" + sid + ".npy")
+#
+#             img1 = img1[:, :200]
+#             # axis로 지정된 차원을 추가
+#             img1 = np.expand_dims(img1, axis=-1)
+#             X_target.append(img1)
+#
+#         return  {"img1":np.array(X_input),"img2":np.array(X_target)},y_train
+#
+#     # epochs마다 어떤 처리 할지 정해준다
+#     def on_epoch_end(self):
+#         # 가지고 있는 데이터 세트의 인덱스를 가져온다
+#         self.indexes=np.arange(len(self.df))
+#         if self.shuffle:
+#             np.random.shuffle(self.indexes)
 
 
 # https://hwiyong.tistory.com/335
