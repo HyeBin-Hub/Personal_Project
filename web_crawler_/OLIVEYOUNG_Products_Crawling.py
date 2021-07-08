@@ -49,6 +49,7 @@ def get_review(title):
 prd_list = driver.find_elements(By.CSS_SELECTOR, "div.prd_name")
 prd_len = len(prd_list)
 
+
 result = []
 for i in range(10):
     prd_dict = {}
