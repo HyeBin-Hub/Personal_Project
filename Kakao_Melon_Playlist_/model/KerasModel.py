@@ -221,6 +221,7 @@ def rank_model(sg_size,tg_nq,gr_nq):
 #             else:
 #                 img1=np.load("./arena_mel/0/"+sid+".npy")
 #
+#
 #             img1=img1[:,:200]
 #             img1=np.expand_dims(img1,axis=-1)
 #             X_input.append(img1)
