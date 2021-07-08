@@ -70,7 +70,7 @@ def get_model(songs_size,tg_nq,gr_nq):
 
     # SparseCategoricalCrossentropy()
     #    - from_logits=True라면 값을 그대로 loss의 입력으로 넣는다.
-    #    - from_logits=False라면 이전 activation이 Softmax라면, ????????????????????? 입력값을 다시 받아와서 loss의 입력으로 넣는다.
+    #    - from_logits=False라면 이전 activation이 Softmax라면, 입력값을 다시 받아와서 loss의 입력으로 넣는다.
     #                           아무것도 해당되지 않는다면 log 함수를 취해서 loss의 입력으로 넣는다.
     model.compile(loss=losses.SparseCategoricalCrossentropy(from_logits=True),
                   optimizer=optimizers.Adam(lr=0.001))
@@ -78,9 +78,6 @@ def get_model(songs_size,tg_nq,gr_nq):
     return model
 
 #get_model(["1","2","3"],["a","b","c"],["1","2","3"],700000)
-
-
-
 
 
 
@@ -148,7 +145,7 @@ def image_conv():
     m1=layers.MaxPooling2D((2,2))(ac1)
 
     #         Conv2D(filter 수, (filter size))
-    c2=layers.Conv2D(32,(3,3),activation="relu")(bn1)
+    c2=layers.Conv2D(32,(3,3),activation="relu")(m1)
     drop2 = layers.Dropout(0.2)(c2)
     bn2 = layers.BatchNormalization()(drop2)
     ac2 = layers.Activation("relu")(bn2)
@@ -242,7 +239,7 @@ class DataGenerator(Sequence):
 
         return  {"img1":np.array(X_input),"img2":np.array(X_target)},y_train
 
-    # epochs마다 어떤 처리 할지 정해준다??????????
+    # epochs마다 어떤 처리 할지 정해준다
     def on_epoch_end(self):
         # 가지고 있는 데이터 세트의 인덱스를 가져온다
         self.indexes=np.arange(len(self.df))
