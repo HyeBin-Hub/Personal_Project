@@ -41,7 +41,6 @@ def get_review(title):
         rl.append(rd)
     return rl
 
-
 # 4 ) 요소 찾기(Locating Elements)
 #     셀레니움은 다양한 요소를 찾는 방법을 지원하다
 #     4-1 ) find_element : 해당 조건에 맞는 요소 하나만을 반환
